@@ -1,0 +1,132 @@
+/*
+    File: controls.css
+    By: Peter Torelli
+    Date: 20-SEP-2014
+
+    Copyright (c) 2014 Peter J. Torelli
+    
+    This file is part of Arduinolyzer.js
+
+    It provides rendering information for the user interface.
+
+    Arduinlyzer.js is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Arduinlyzer.js is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+* {
+  font-family: Helvetica, Sans-serif;
+  font-size: 11pt;
+}
+
+div#config {
+  width: 150px;
+  float: left;
+  background: #eee;
+  border: 1px solid #ccc;
+}
+
+div#screen {
+  display: none; /* resize & show later */
+  width: auto;
+  overflow: scroll;
+  overflow-y: hidden;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  position: relative;
+}
+
+canvas {
+  position: absolute;
+}
+
+ul {
+  list-style: none;
+  padding: 0px;
+  margin: 0px;
+}
+
+li {
+  padding: 5px;
+}
+
+label {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+input[type=number] {
+  text-align: right;
+  width: 5em;
+  height: 2em;
+  border: 1px solid #ccc;
+}
+
+select {
+  border: 1px solid #ccc;
+  height: 2em;
+}
+
+div.copt {
+  text-align: center;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 15px;
+  padding-top: 15px;
+  font-weight: bold;
+}
+
+div.topb {
+  border-top: 1px solid #ccc;
+  text-align: center;
+}
+
+div.button {
+  cursor: pointer;
+  display: inline-block;
+  background: dodgerblue;
+  color: white;
+  width: 100px;
+  padding: 10px;
+  margin: 10px;
+  font-weight: bold;
+}
+
+div#summary {
+  font-size: 8pt;
+  color: #ccc;
+}
+
+div.zoomer {
+  cursor: pointer;
+  border: 1px solid #999; 
+  color: #999;
+  background: white;
+  text-align: center;
+  width: 20px;
+  line-height: 20px;
+  position: absolute;
+  top: 14px;
+}
+
+div.zoomer#minus {
+  left: 165px;
+}
+
+div.zoomer#plus {
+  left: 190px;
+}
+
+div.chbox {
+  text-align: center;
+}
+

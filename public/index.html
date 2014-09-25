@@ -1,0 +1,93 @@
+<!doctype html>
+<!--
+    File: index.html
+    By: Peter Torelli
+    Date: 20-SEP-2014
+   
+    Copyright (c) 2014 Peter J. Torelli
+ 
+    This file is part of Arduinolyzer.js
+
+    It provides the HTML5 user interface for the analyzer, communicating
+    with the server via AJAX and socket.io, and the user via javascript
+    and canvas rendering.
+
+    Arduinlyzer.js is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Arduinlyzer.js is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<html>
+  <head>
+    <title>Arduinolyzer.js</title>
+    <link rel='stylesheet' href='controls.css' />
+  </head>
+  <body>
+    <div id='container'>
+      <div id='config'>
+        <!-- TODO can't css do ::after and ::nth? -->
+        <div class='copt'>Trigger</div>
+        <ul>
+          <li>
+            <input type='checkbox' id='rise' />
+            <label for='rise'>Rising</label>
+          </li>
+          <li>
+            <input type='checkbox' id='fall' />
+            <label for='fall'>Falling</label>
+          </li>
+          <li>
+            <input type='checkbox' id='once' />
+            <label for='once'>One-shot</label>
+          </li>
+        </ul>
+        <div class='copt topb'>Samping</div>
+        <ul>
+          <li>
+            <input type='number' value='5' id='interval' min='0' />
+            <select name='du' id='unit'>
+              <option value='s'>s</option>
+              <option value='ms' selected='selected'>ms</option>
+              <option value='us'>&#x03bc;s</option>
+            </select>
+          </li>
+          <li>
+            <input type='number' value='960' id='limit' min='96' step='96' max='8640' />
+            <label for='limit'>Limit</label>
+          </li>
+        </ul>
+        <div class='copt topb'>Channels</div>
+        <div class='chbox'>
+          <input id='ch1' type='checkbox' checked />
+          <label for='ch1'>1</label>
+          <input id='ch2' type='checkbox' />
+          <label for='ch2'>2</label>
+          <input id='ch3' type='checkbox' />
+          <label for='ch3'>3</label>
+          <input id='ch4' type='checkbox' />
+          <label for='ch4'>4</label>
+        </div>
+        <div class='topb'>
+          <div class='button' id='start'>Start</div>
+        </div>
+      </div><!-- config div -->
+      <div id='screen'>
+        <canvas id='data'>Canvas not supported, need html5</canvas>
+      </div>
+      <div id='minus' class='zoomer'/>&#x2212;</div>
+      <div id='plus' class='zoomer'/>&#x002b;</div>
+    </div><!-- container div -->
+    <div id='summary'></div>
+  </body>
+  <script src='jquery.js' ></script>
+  <script src='socket.io.js'></script>
+  <script src='controls.js'></script>
+</html>

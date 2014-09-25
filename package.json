@@ -1,0 +1,19 @@
+{
+  "name" : "Arduinolyzer.js",
+  "version" : "1.0.0",
+  "description" : "A logic analyzer for Arduino using HTML5 & node.js",
+  "license" : "GPL",
+  "author" : 
+  {
+    "name" : "Peter Torelli",
+    "email" : "peter@petertorelli.com"
+  },
+  "dependencies" : 
+  {
+    "express" : "4.9.0",
+    "formidable" : "1.0.15",
+    "morgan" : "1.3.1",
+    "serialport" : "1.4.6",
+    "socket.io"  : "1.1.0"
+  }
+}
