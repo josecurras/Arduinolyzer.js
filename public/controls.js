@@ -50,7 +50,6 @@ function update_mode() {
     'Error: Trigger requested, but no edge type',
     'Sample on every trigger fall',
     'Interval sampling after falling trigger',
-
     'Sample on every trigger rise',
     'Interval sampling after rising trigger',
     'Sample on every changing trigger',
@@ -60,7 +59,25 @@ function update_mode() {
   mode |= $('input#rise').is(':checked') ? (1 << 2) : 0;
   mode |= $('input#fall').is(':checked') ? (1 << 1) : 0;
   mode |= $('input#once').is(':checked') ? (1 << 0) : 0;
-  $('div#summary').text(text_mode[mode]);
+
+  var us = $('input#interval').val();
+  var unit = $('select#unit').val();
+  us *= (unit == 'ms') ? 1000 : (unit == 'us') ? 1 : 1000000;
+  
+  var total_ch = 0;
+  if ($('input#ch1').is(':checked')) ++total_ch;
+  if ($('input#ch2').is(':checked')) ++total_ch;
+  if ($('input#ch3').is(':checked')) ++total_ch;
+  if ($('input#ch4').is(':checked')) ++total_ch;
+
+  var limit = $('input#limit').val();
+  var runtime = limit * us / total_ch / 1e6;
+
+  var summary = text_mode[mode];
+  if (mode == 0 || mode & 1) 
+    summary += ', approximately ' + runtime + ' seconds of collection.';
+  
+  $('div#summary').text(summary);
   return mode;
 }
 
@@ -149,6 +166,9 @@ function start_stop(mode) {
 
 // Launch the config to the server, and on to the arduinolyzer
 $('div.button#start').on('click', function(e) {
+  // Prevent reentry 
+  if ($('div.button#start').text() == "Wait") 
+    return;
   var config = build_config();
   if (config == '') 
     return;
@@ -176,7 +196,10 @@ gsocket.on('newdata', function(data) {
 });
 
 // I like to update the status mode every time an input changes
-$('input').on('change', function(e) {
+$('input').on('change', function() {
+  update_mode();
+});
+$('select').on('change', function() {
   update_mode();
 });
 
