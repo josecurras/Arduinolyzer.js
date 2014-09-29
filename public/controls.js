@@ -23,24 +23,94 @@
     along with Arduinolyzer.js.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Some lovely global variables...
 // The url for the AJAX and socket.io com
-var gurl = 'http://localhost:8080';
-// Data sent back from the server arrives on the gsocket
-var gsocket = io.connect(gurl);
-// Render zoom
-var gzoom = 1;
-// Sample data
-var gdata = {};
-// The main data canvas
-var gcanvas = $('canvas#data')[0];
-// The main drawing context
-var g2d = gcanvas.getContext('2d');
-// Set some defaults for the context
-g2d.translate(0.5, 0.5);
-g2d.lineCap = 'square';
-g2d.lineWidth = 0.5;
-g2d.lineJoin = 'miter';
+var gURL = 'http://localhost:8080';
+
+// The viewport which renders channels, zooms, and scrolls
+var viewport = new function() {
+  // TODO pass this on init instead of singleton hardcode
+  this.canvas = $('canvas#data');
+
+  this.ctx = this.canvas[0].getContext('2d');
+  this.ctx.translate(0.5, 0.5);
+  this.ctx.lineCap = 'square';
+  this.ctx.lineWidth = 0.5;
+  this.ctx.lineJoin = 'miter';
+
+  this.zoomFactor = 1;
+
+  var that = this;
+
+  this.clear = function() {
+    that.ctx.clearRect(0, 0, that.canvas.width, that.canvas.height);
+  }
+
+  this.resize = function() {
+    // TODO use parent instead of hardcode
+    var w = $('div#screen').css('width').replace(/px/, '') 
+          * that.zoomFactor;
+    var h = $('div#screen').css('height');
+    that.canvas.attr({width: w, height: h});
+  }
+
+  this.renderChannel = function(chnum, color) {
+    var chname = 'ch' + chnum;
+    if (that.data[chname] == undefined)
+      return;
+    var data = that.data[chname];
+    // Pull some data from the canvas and data
+    var samples = data.length;
+    var width = that.canvas[0].width;
+    var channel_height = that.canvas[0].height / 4;
+    // Buld some rendering parameter limits
+    var wave_height = 20;
+    var mid = (channel_height / 2) + (channel_height * (chnum - 1));
+    var pps = width / samples;
+    // Starting point for the trace
+    var xpos = 0;
+    var ypos = data[0] == '1' ? mid - wave_height : mid;
+    // Render the axis guide box
+    that.ctx.fillStyle = '#eee';
+    that.ctx.fillRect(0, mid - (2*wave_height), width, (3*wave_height)); 
+    // Render the trace's line
+    that.ctx.beginPath();
+    that.ctx.moveTo(xpos, ypos);
+    for (var i = 0; i < samples; ++i) {
+      that.ctx.lineTo(xpos, ypos);
+      ypos = data[i] == '0' ? mid : mid - wave_height;
+      that.ctx.lineTo(xpos, ypos);
+      xpos += pps;
+    }
+    that.ctx.lineTo(xpos + pps, ypos);
+    that.ctx.strokeStyle = color;
+    that.ctx.stroke();
+    that.ctx.closePath();
+  }
+
+  this.render = function() {
+    that.clear();
+    that.renderChannel(1, 'red');
+    that.renderChannel(2, 'blue');
+    that.renderChannel(3, 'green');
+    that.renderChannel(4, 'orange');
+  }
+
+  this.setData = function(data) {
+    that.data = data;
+  }
+
+  this.zoom = function(direction) {
+    if (direction == "in") { 
+      that.zoomFactor += 0.75;
+    } else {
+      that.zoomFactor -= 0.75;
+      that.zoomFactor = (that.zoomFactor < 1) ? 1 : that.zoomFactor;
+    }
+    console.log(that.zoomFactor);
+    that.resize();
+    that.render();
+  }
+};
 
 // This is a useful routine that provides text-string feedback to 
 // the user indicating the sample mode defined by the input settings.
@@ -112,49 +182,6 @@ function build_config() {
   }
 }
 
-// Draw one channel's data
-function render_channel(channel, color, data) {
-  var channel_height = gcanvas.height / 4;
-  var width = gcanvas.width;
-  var wave_height = 20;
-  var mid = (channel_height / 2) + (channel_height * (channel - 1));
-  var samples = data.length;
-  var pps = width / samples;
-  // Starting point for the trace
-  var xpos = 0;
-  var ypos = data[0] == '1' ? mid - wave_height : mid;
-  // Render the axis guide box
-  g2d.fillStyle = '#eee';
-  g2d.fillRect(0, mid - (2 * wave_height), width, (3 * wave_height)); 
-  // Render the trace
-  g2d.beginPath();
-  g2d.moveTo(xpos, ypos);
-  for (var i = 0; i < samples; ++i) {
-    g2d.lineTo(xpos, ypos);
-    ypos = data[i] == '0' ? mid : mid - wave_height;
-    g2d.lineTo(xpos, ypos);
-    xpos += pps;
-  }
-  g2d.lineTo(xpos + pps, ypos);
-  g2d.strokeStyle = color;
-  g2d.stroke();
-  g2d.closePath();
-}
-
-// Generic render() routine that can be called anywhere when there
-// is new data available.
-function render() {
-  g2d.clearRect(0, 0, gcanvas.width, gcanvas.height);
-  if (gdata['ch1'] != undefined) 
-    render_channel(1, 'red', gdata.ch1);
-  if (gdata['ch2'] != undefined) 
-    render_channel(2, 'blue', gdata.ch2);
-  if (gdata['ch3'] != undefined) 
-    render_channel(3, 'green', gdata.ch3);
-  if (gdata['ch4'] != undefined) 
-    render_channel(4, 'orange', gdata.ch4);
-}
-
 // Change the status of the start/stop button
 function start_stop(mode) {
   if (mode == 'start') {
@@ -169,17 +196,15 @@ $('div.button#start').on('click', function(e) {
   // Prevent reentry 
   if ($('div.button#start').text() == "Wait") 
     return;
+  // Do nothing if no config
   var config = build_config();
   if (config == '') 
     return;
   // The status of the start button changes when the data returns
   start_stop('wait');
-  // do this for each new collection
-  gzoom = 1;
-  resize();
-  var data = { config: config };
-  $.ajax(gurl + '/start', {
-    data: data,
+  // Send the request to the server
+  $.ajax(gURL + '/start', {
+    data: { config: config },
     dataType: 'text',
     error: function(jqXHR, status, err) {
       console.log('ajax error : ' + err);
@@ -189,16 +214,18 @@ $('div.button#start').on('click', function(e) {
 });
 
 // The data from the AJAX request returns via socket.io
-gsocket.on('newdata', function(data) {
-  gdata = JSON.parse(data);
-  render();
+io.connect(gURL).on('newdata', function(data) {
+  viewport.setData(JSON.parse(data));
+  viewport.clear();
+  viewport.render();
   start_stop('start');
 });
 
-// I like to update the status mode every time an input changes
+// I like to update the status mode every time an input/select changes
 $('input').on('change', function() {
   update_mode();
 });
+
 $('select').on('change', function() {
   update_mode();
 });
@@ -210,14 +237,10 @@ $('input#interval').on('change', function() {
   }
 });
 
-// This is used in two places, so I made it a func
-function resize() {
-  var px = $('div#screen').css('width').replace(/px/, '') * gzoom;
-  $('canvas#data').attr({width: px});
-}
-
 // Input validation on the sample limit
 $('input#limit').on('change', function() {
+  // Must be divisible by 12 (see sketch) bytes and
+  // 8 samples per byte = 96.
   if ($(this).val() % 96 != 0) {
     alert("The sample limit must be a multiple of 96");
     $(this).val(960);
@@ -233,12 +256,9 @@ $('input#limit').on('change', function() {
 // Resize the canvas and re-render when zooming
 $('div.zoomer').on('click', function(e) {
   if (e.target.id == 'minus')
-    gzoom -= .75;
-  else 
-    gzoom += .75;
-  gzoom = gzoom < 1 ? 1 : gzoom;
-  resize();
-  render();
+    viewport.zoom('out');
+  else
+    viewport.zoom('in');
 });
 
 $(function() {
@@ -250,10 +270,8 @@ $(function() {
     .css('height', $('div#config').css('height'))
     .show()
   ;
-  var w = $('div#screen').css('width');
-  var h = $('div#screen').css('height');
-  $('canvas#data').attr({width: w, height: h});
+  // Fit the viewport to the parent div on load
+  viewport.resize();
   // Print initial conditions of default setup
   update_mode();
 });
-
