@@ -28,4 +28,5 @@ server.js
 
 index.html
 -- Add time-axes and markers
+-- Try HTML5 server-sent events instead of socket.io
 
