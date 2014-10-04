@@ -25,6 +25,8 @@ Sketch
 server.js
 -- Remove express, formidable and morgan to make the code smaller and
    reduce dependencies.
+-- Reloads of the client '/' and '/index.html' should reset the serial
+   port. This would allow interrupting the hardware via client.
 
 index.html
 -- Add time-axes and markers
